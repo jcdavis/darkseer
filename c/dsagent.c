@@ -4,6 +4,7 @@
 
 jvmtiEnv* jvmti;
 char* start = 0;
+short first = 1;
 
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass klass) {
   char* thread_ptr;
@@ -12,6 +13,11 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass
 }
 
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass) {
+  //To avoid printing class init-related allocations from the static init, skip printing
+  if (first) {
+    first = 0;
+    return;
+  }
   char* thread_ptr;
   asm("movq %%r15, %0;":"=r"(thread_ptr)::);
   char* end = *(char**)(thread_ptr + 0x60);
