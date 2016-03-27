@@ -22,7 +22,7 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
   asm("movq %%r15, %0;":"=r"(thread_ptr)::);
   char* end = *(char**)(thread_ptr + 0x60);
   long allocated = (long)end - (long)start;
-  printf("%d\n", allocated);
+  printf("%ld\n", allocated);
 
   char* current = start;
   while (end > current) {
@@ -34,7 +34,7 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
     char* generic_signature;
     (*jvmti)->GetClassSignature(jvmti, objKlass, &signature,
       &generic_signature);
-    printf("%s: %d\n", signature, size);
+    printf("%s: %ld\n", signature, size);
     (*jvmti)->Deallocate(jvmti, signature);
     (*jvmti)->Deallocate(jvmti, generic_signature);
     assert(size > 0 && size % 8 == 0);
