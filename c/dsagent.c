@@ -6,12 +6,14 @@ jvmtiEnv* jvmti;
 char* start = 0;
 
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass klass) {
-  register char* thread_ptr asm ("r15");
+  char* thread_ptr;
+  asm("movq %%r15, %0;":"=r"(thread_ptr)::);
   start = *(char**)(thread_ptr + 0x60);
 }
 
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass) {
-  register char* thread_ptr asm ("r15");
+  char* thread_ptr;
+  asm("movq %%r15, %0;":"=r"(thread_ptr)::);
   char* end = *(char**)(thread_ptr + 0x60);
   long allocated = (long)end - (long)start;
   printf("%d\n", allocated);
