@@ -14,9 +14,9 @@ jar: setup
 	$(JAVA_HOME)/bin/javac -d target/ java/is/jcdav/darkseer/*
 	$(JAVA_HOME)/bin/jar cvf target/darkseer.jar target/is/jcdav/darkseer/*.class
 
-ARCH=$(shell uname -s | tr '[:upper:]' '[:lower:]')
+OS=$(shell uname -s | tr '[:upper:]' '[:lower:]')
 agent: setup
-	gcc -o target/ldsagent.so -lc -shared -fPIC -I $(JAVA_HOME)/include/ -I $(JAVA_HOME)/include/$(ARCH)/ c/*.c
+	gcc -o target/ldsagent.so -lc -shared -fPIC -I $(JAVA_HOME)/include/ -I $(JAVA_HOME)/include/$(OS)/ c/*.c
 
 stubs: setup jar
 	$(JAVA_HOME)/bin/javah -o target/stubs.c -stubs -cp target/ is.jcdav.darkseer.DarkSeer
