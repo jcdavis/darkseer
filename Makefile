@@ -2,8 +2,8 @@ all: jar agent
 
 setup:
 ifndef JAVA_HOME
-echo "You need to set JAVA_HOME"
-false
+	echo "You need to set JAVA_HOME"
+	false
 endif
 	mkdir -p target
 
