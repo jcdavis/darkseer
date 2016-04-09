@@ -7,9 +7,7 @@ char* start = 0;
 short first = 1;
 
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass klass) {
-  char* thread_ptr;
-  asm("movq %%r15, %0;":"=r"(thread_ptr)::);
-  start = *(char**)(thread_ptr + 0x60);
+  asm("movq 0x60(%%r15), %0;":"=r"(start)::);
 }
 
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass) {
@@ -18,9 +16,8 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
     first = 0;
     return;
   }
-  char* thread_ptr;
-  asm("movq %%r15, %0;":"=r"(thread_ptr)::);
-  char* end = *(char**)(thread_ptr + 0x60);
+  char* end;
+  asm("movq 0x60(%%r15), %0;":"=r"(end)::);
   long allocated = (long)end - (long)start;
   printf("%ld\n", allocated);
 
