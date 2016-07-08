@@ -34,7 +34,7 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
     printf("%s: %ld\n", signature, size);
     (*jvmti)->Deallocate(jvmti, signature);
     (*jvmti)->Deallocate(jvmti, generic_signature);
-    assert(size > 0 && size % 8 == 0);
+    assert(size > 0 && size % 8 == 0); //FIXME: this assert is not portable
     current += size;
   }
 }
