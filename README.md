@@ -1,10 +1,12 @@
 # Darkseer
 
-Darkseer is an experimental JVM microprofiler for analyzing actual memory allocations in a thread. It will be particularly of interest to people looking to analyze the real-world memory usage of c2 compiled methods, free from the interference that comes from bytecode manipulating profilers.
+Darkseer is an experimental JVM profiler for analyzing actual memory allocations in a thread. It may be of interest to people looking to analyze the real-world memory usage of c2 compiled methods, free from the interference that comes from bytecode manipulating profilers.
+
+**This should be considered to be a proof of concept for the curious only**
 
 # Warning
 
-Darkseer works by taking advantage of specific register allocation and memory layout of recent builds of OpenJDK on x86-64 to read internal JVM state. These assumptions are not likely to work on other JDKs, or even older versions of OpenJDK. These access patterns are very non-kosher and are highly likely to cause the JVM to crash. Never run Darkseer anywhere you can't tolerate a JVM crash (ie any production deployment).
+Darkseer works by taking advantage of specific register allocation and memory layout of recent builds of OpenJDK on x86-64 to read internal JVM state. These assumptions are not likely to work on other JDKs, or even older versions of OpenJDK. These access patterns are very non-kosher and are likely to cause the JVM to crash. Don't this running this anywhere you can't tolerate a JVM crash (ie any production deployment).
 
 # Building
 
