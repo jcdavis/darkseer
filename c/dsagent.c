@@ -30,7 +30,7 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
   asm("lea 0x58(%%r15), %0;":"=r"(end)::);
   if (start.start != end->start || start.end != end->end ||
     start.top > end->top) {
-    printf("Detected a GC event, can't walk heap\n");
+    printf("Detected a change in the TLAB due to a GC event, can't determine allocations\n");
     printf("      TLAB @ start TLAB @ end\n");
     printf("start  %p %p\n", start.start, end->start);
     printf("top    %p %p\n", start.top, end->top);
