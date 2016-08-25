@@ -1,13 +1,23 @@
 #include <assert.h>
 #include <jvmti.h>
 #include <stdio.h>
+#include <string.h>
+
+typedef struct {
+  void* start;
+  void* top;
+  void* pf_top;
+  void* end;
+} TLAB;
 
 jvmtiEnv* jvmti;
-char* start = 0;
+TLAB start;
 short first = 1;
 
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass klass) {
-  asm("movq 0x60(%%r15), %0;":"=r"(start)::);
+  TLAB* s;
+  asm("lea 0x58(%%r15), %0;":"=r"(s)::);
+  memcpy(&start, s, sizeof(TLAB));
 }
 
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass) {
@@ -16,13 +26,24 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
     first = 0;
     return;
   }
-  char* end;
-  asm("movq 0x60(%%r15), %0;":"=r"(end)::);
-  long allocated = (long)end - (long)start;
+  TLAB* end;
+  asm("lea 0x58(%%r15), %0;":"=r"(end)::);
+  if (start.start != end->start || start.end != end->end ||
+    start.top > end->top) {
+    printf("Detected a GC event, can't walk heap\n");
+    printf("      TLAB @ start TLAB @ end\n");
+    printf("start  %p %p\n", start.start, end->start);
+    printf("top    %p %p\n", start.top, end->top);
+    printf("pf_top %p %p\n", start.pf_top, end->pf_top);
+    printf("end    %p %p\n", start.end, end->end);
+    printf("If this happens regularly you may need to increase -XX:MinTLABSize\n");
+    return;
+  }
+  long allocated = (long)end->top - (long)start.top;
   printf("%ld\n", allocated);
 
-  char* current = start;
-  while (end > current) {
+  char* current = (char*)start.top;
+  while (end->top > current) {
     jclass objKlass = (*env)->GetObjectClass(env, (jobject)&current);
     jlong size = -1;
     (*jvmti)->GetObjectSize(jvmti, (jobject)&current, &size);
