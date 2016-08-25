@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <inttypes.h>
 #include <jvmti.h>
 #include <stdio.h>
 #include <string.h>
@@ -31,11 +32,15 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
   if (start.start != end->start || start.end != end->end ||
     start.top > end->top) {
     printf("Detected a change in the TLAB due to a GC event, can't determine allocations\n");
-    printf("      TLAB @ start TLAB @ end\n");
-    printf("start  %p %p\n", start.start, end->start);
-    printf("top    %p %p\n", start.top, end->top);
-    printf("pf_top %p %p\n", start.pf_top, end->pf_top);
-    printf("end    %p %p\n", start.end, end->end);
+    printf("       TLAB @ start     TLAB @ end\n");
+    printf("start  %016" PRIxPTR " %016" PRIxPTR "\n",
+      (uintptr_t)start.start, (uintptr_t)end->start);
+    printf("top    %016" PRIxPTR " %016" PRIxPTR "\n",
+      (uintptr_t)start.top, (uintptr_t)end->top);
+    printf("pf_top %016" PRIxPTR " %016" PRIxPTR "\n",
+      (uintptr_t)start.pf_top, (uintptr_t)end->pf_top);
+    printf("end    %016" PRIxPTR " %016" PRIxPTR "\n",
+      (uintptr_t)start.end, (uintptr_t)end->end);
     printf("If this happens regularly you may need to increase -XX:MinTLABSize\n");
     return;
   }
