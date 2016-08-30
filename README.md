@@ -1,6 +1,6 @@
 # Darkseer
 
-Darkseer is an experimental JVM profiler for analyzing actual memory allocations in a thread. It may be of interest to people looking to analyze the real-world memory usage of c2 compiled methods, free from the interference that comes from bytecode manipulating profilers.
+Darkseer is an experimental JVM profiler for analyzing actual memory allocations in a thread. It may be of interest to people looking to analyze the real-world memory usage of c2 compiled methods, free from the interference that comes from bytecode manipulating profilers. For more background on how it works, read [my blog post](http://jcdav.is/2016/07/11/JVM-allocation-secrets/)
 
 **This should be considered to be a proof of concept for the curious only**
 
@@ -10,7 +10,7 @@ Darkseer works by taking advantage of specific register allocation and memory la
 
 # Building
 
-The only requirement for building Darkseer is having `JAVA_HOME` configured to point to an installed jdk. To build, run `make demo`, which will build both the agent as well as the interface jar, and then build a run a simple demo.
+The only requirements for building Darkseer are having gcc and `JAVA_HOME` configured to point to an installed jdk and. To build, run `make demo`, which will build both the agent as well as the interface jar, and then build a run a simple demo.
 
 If you are modifying the signature of the native methods, running `make stubs` will create a generated wrapper file `target/stubs.c`
 
@@ -22,7 +22,7 @@ To run, pass `-agentpath:path/to/ldsagent.so` to java and make sure `darkseer.ja
 
 Here are just a few:
 
-* Darkseer is very fragile and has little sanity checks. Most GC events will cause it to crash the JVM (Somewhat fixable)
+* Darkseer is fragile and only has basic sanity checkins. Some GC events will cause it to crash the JVM (Somewhat fixable)
 * We can only look at allocations in a single TLAB slice. This is a fundamental limitation, but can be somewhat circumvented via increasing the TLAB size using `-XX:MinTLABSize=`
 * Darkseer can only record allocations for the thread that called it (unfixable)
 * Darkseer can only record allocations for a single thread at a time (fixable)
