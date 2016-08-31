@@ -10,13 +10,13 @@ Darkseer works by taking advantage of specific register allocation and memory la
 
 # Building
 
-The only requirements for building Darkseer are having gcc and `JAVA_HOME` configured to point to an installed jdk and. To build, run `make demo`, which will build both the agent as well as the interface jar, and then run a simple demo.
+The only requirements for building Darkseer are having gcc and `JAVA_HOME` configured to point to an installed jdk. To build, run `make demo`, which will build both the agent as well as the interface jar, and then run a simple demo.
 
 If you are modifying the signature of the native methods, running `make stubs` will create a generated wrapper file `target/stubs.c`
 
 # Running
 
-To run, pass `-agentpath:path/to/ldsagent.so` to java and make sure `darkseer.jar` in on your classpath (see demo in Makefile). You start recording via `DarkSeer.start()` and stop with `DarkSeer.end()`, which will print out the total number of bytes allocated as well and the class and size of every allocated object.
+To run, pass `-agentpath:path/to/ldsagent.so` to java and make sure `darkseer.jar` in on your classpath (see the demo in the Makefile). You start recording via `DarkSeer.start()` and stop with `DarkSeer.end()`, which will print out the total number of bytes allocated as well and the class and size of every allocated object.
 
 # Limitations
 

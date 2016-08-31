@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
+// Corresopnds to start of the JVM's ThreadLocalAlloc class
 typedef struct {
   void* start;
   void* top;
