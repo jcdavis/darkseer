@@ -14,7 +14,6 @@ typedef struct {
 
 jvmtiEnv* jvmti;
 TLAB start;
-short first = 1;
 
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass klass) {
   TLAB* s;
@@ -23,11 +22,6 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass
 }
 
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass) {
-  //To avoid printing class init-related allocations from the static init, skip printing
-  if (first) {
-    first = 0;
-    return;
-  }
   TLAB* end;
   asm("lea 0x58(%%r15), %0;":"=r"(end)::);
   if (start.start != end->start || start.end != end->end ||
