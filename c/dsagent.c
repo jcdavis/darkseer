@@ -50,6 +50,11 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
     printf("If this happens regularly you may need to increase -XX:MinTLABSize\n");
     return;
   }
+  jmethodID mid = (*env)->GetStaticMethodID(env, klass, "printValue", "(Ljava/lang/Object;)V");
+  if (!mid) {
+    printf("I don't know how to JNI. printValues disabled\n");
+    printValues = 0;
+  }
   long allocated = (long)end.top - (long)start.top;
   printf("%ld\n", allocated);
 
@@ -66,12 +71,7 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
     printf("%s: %ld\n", signature, size);
 
     if (printValues) {
-      jmethodID mid = (*env)->GetStaticMethodID(env, klass, "printValue", "(Ljava/lang/Object;)V");
-      if (!mid) {
-        printf("Erm I how to JNI\n");
-      } else {
-        (*env)->CallStaticVoidMethod(env, klass, mid, (jobject)&current);
-      }
+      (*env)->CallStaticVoidMethod(env, klass, mid, (jobject)&current);
     }
 
     (*jvmti)->Deallocate(jvmti, signature);
