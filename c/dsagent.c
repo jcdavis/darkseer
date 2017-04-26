@@ -21,29 +21,34 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass
   memcpy(&start, s, sizeof(TLAB));
 }
 
-JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass) {
-  TLAB* end;
-  asm("lea 0x58(%%r15), %0;":"=r"(end)::);
-  if (start.start != end->start || start.end != end->end ||
-    start.top > end->top) {
+JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass, jboolean printValues) {
+  /* printValues will cause objects to be allocated, so must copy over the TLAB state before walking else we
+   * well infite loop into crashing.
+   */
+  TLAB end;
+  TLAB* e;
+  asm("lea 0x58(%%r15), %0;":"=r"(e)::);
+  memcpy(&end, e, sizeof(TLAB));
+  if (start.start != end.start || start.end != end.end ||
+    start.top > end.top) {
     printf("Detected a change in the TLAB due to a GC event, can't determine allocations\n");
     printf("       TLAB @ start     TLAB @ end\n");
     printf("start  %016" PRIxPTR " %016" PRIxPTR "\n",
-      (uintptr_t)start.start, (uintptr_t)end->start);
+      (uintptr_t)start.start, (uintptr_t)end.start);
     printf("top    %016" PRIxPTR " %016" PRIxPTR "\n",
-      (uintptr_t)start.top, (uintptr_t)end->top);
+      (uintptr_t)start.top, (uintptr_t)end.top);
     printf("pf_top %016" PRIxPTR " %016" PRIxPTR "\n",
-      (uintptr_t)start.pf_top, (uintptr_t)end->pf_top);
+      (uintptr_t)start.pf_top, (uintptr_t)end.pf_top);
     printf("end    %016" PRIxPTR " %016" PRIxPTR "\n",
-      (uintptr_t)start.end, (uintptr_t)end->end);
+      (uintptr_t)start.end, (uintptr_t)end.end);
     printf("If this happens regularly you may need to increase -XX:MinTLABSize\n");
     return;
   }
-  long allocated = (long)end->top - (long)start.top;
+  long allocated = (long)end.top - (long)start.top;
   printf("%ld\n", allocated);
 
   char* current = (char*)start.top;
-  while (end->top > current) {
+  while (end.top > current) {
     jclass objKlass = (*env)->GetObjectClass(env, (jobject)&current);
     jlong size = -1;
     (*jvmti)->GetObjectSize(jvmti, (jobject)&current, &size);
@@ -53,6 +58,16 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
     (*jvmti)->GetClassSignature(jvmti, objKlass, &signature,
       &generic_signature);
     printf("%s: %ld\n", signature, size);
+
+    if (printValues) {
+      jmethodID mid = (*env)->GetStaticMethodID(env, klass, "printValue", "(Ljava/lang/Object;)V");
+      if (!mid) {
+        printf("Erm I how to JNI\n");
+      } else {
+        (*env)->CallStaticVoidMethod(env, klass, mid, (jobject)&current);
+      }
+    }
+
     (*jvmti)->Deallocate(jvmti, signature);
     (*jvmti)->Deallocate(jvmti, generic_signature);
     assert(size > 0 && size % 8 == 0); //FIXME: this assert is not portable
