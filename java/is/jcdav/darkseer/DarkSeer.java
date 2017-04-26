@@ -15,5 +15,6 @@ public class DarkSeer {
   // Warmup to clear out initializaion allocations
   static {
     start();
+    end();
   }
 }

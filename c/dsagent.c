@@ -14,6 +14,7 @@ typedef struct {
 
 jvmtiEnv* jvmti;
 TLAB start;
+short first = 1;
 
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass klass) {
   TLAB* s;
@@ -22,6 +23,11 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass
 }
 
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass, jboolean printValues) {
+  //To avoid printing class init-related allocations from the static init, skip printing
+  if (first) {
+    first = 0;
+    return;
+  }
   /* printValues will cause objects to be allocated, so must copy over the TLAB state before walking else we
    * well infite loop into crashing.
    */
