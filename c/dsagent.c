@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-// Corresopnds to start of the JVM's ThreadLocalAlloc class
+// Corresponds to start of the JVM's ThreadLocalAlloc class
 typedef struct {
   void* start;
   void* top;
@@ -29,7 +29,7 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
     return;
   }
   /* printValues will cause objects to be allocated, so must copy over the TLAB state before walking else we
-   * well infite loop into crashing.
+   * will infinite loop into crashing.
    */
   TLAB end;
   TLAB* e;
