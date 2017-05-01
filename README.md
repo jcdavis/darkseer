@@ -18,6 +18,8 @@ If you are modifying the signature of the native methods, running `make stubs` w
 
 To run, pass `-agentpath:path/to/ldsagent.so` to java and make sure `darkseer.jar` in on your classpath (see the demo in the Makefile). You start recording via `DarkSeer.start()` and stop with `DarkSeer.end()`, which will print out the total number of bytes allocated as well and the class and size of every allocated object.
 
+If you have scala installed, `make scalarepl` will start a scala repl with correct agent/classpath params.
+
 # Limitations
 
 Here are just a few:
