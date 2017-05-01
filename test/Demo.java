@@ -9,12 +9,12 @@ public class Demo {
     test("hello", "world");
     DarkSeer.start();
     test("hello", "world");
-    DarkSeer.end(true);
+    DarkSeer.end();
     for(int i = 0; i < 500000; i++) {
       test("hello", "world");
     }
     DarkSeer.start();
     test("hello", "world");
-    DarkSeer.end(true);
+    DarkSeer.end();
   }
 }

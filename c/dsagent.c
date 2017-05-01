@@ -22,13 +22,13 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass
   memcpy(&start, s, sizeof(TLAB));
 }
 
-JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass, jboolean printValues) {
+JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass, jint printLevel) {
   //To avoid printing class init-related allocations from the static init, skip printing
   if (first) {
     first = 0;
     return;
   }
-  /* printValues will cause objects to be allocated, so must copy over the TLAB state before walking else we
+  /* printValue will cause objects to be allocated, so must copy over the TLAB state before walking else we
    * will infinite loop into crashing.
    */
   TLAB end;
@@ -50,10 +50,10 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
     printf("If this happens regularly you may need to increase -XX:MinTLABSize\n");
     return;
   }
-  jmethodID mid = (*env)->GetStaticMethodID(env, klass, "printValue", "(Ljava/lang/Object;)V");
+  jmethodID mid = (*env)->GetStaticMethodID(env, klass, "printValue", "(Ljava/lang/Object;I)V");
   if (!mid) {
     printf("I don't know how to JNI. printValues disabled\n");
-    printValues = 0;
+    printLevel = 0;
   }
   long allocated = (long)end.top - (long)start.top;
   printf("%ld\n", allocated);
@@ -70,8 +70,8 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
       &generic_signature);
     printf("%s: %ld\n", signature, size);
 
-    if (printValues) {
-      (*env)->CallStaticVoidMethod(env, klass, mid, (jobject)&current);
+    if (printLevel > 0) {
+      (*env)->CallStaticVoidMethod(env, klass, mid, (jobject)&current, printLevel);
     }
 
     (*jvmti)->Deallocate(jvmti, signature);
