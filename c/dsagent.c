@@ -16,10 +16,14 @@ jvmtiEnv* jvmti;
 TLAB start;
 short first = 1;
 
+static void fillTLAB(TLAB* t) {
+  TLAB* addr;
+  asm("lea 0x58(%%r15), %0;":"=r"(addr)::);
+  memcpy(t, addr, sizeof(TLAB));
+}
+
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass klass) {
-  TLAB* s;
-  asm("lea 0x58(%%r15), %0;":"=r"(s)::);
-  memcpy(&start, s, sizeof(TLAB));
+  fillTLAB(&start);
 }
 
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass, jint printLevel) {
@@ -32,9 +36,8 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
    * will infinite loop into crashing.
    */
   TLAB end;
-  TLAB* e;
-  asm("lea 0x58(%%r15), %0;":"=r"(e)::);
-  memcpy(&end, e, sizeof(TLAB));
+  fillTLAB(&end);
+
   if (start.start != end.start || start.end != end.end ||
     start.top > end.top) {
     printf("Detected a change in the TLAB due to a GC event, can't determine allocations\n");
