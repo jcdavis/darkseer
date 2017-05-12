@@ -28,27 +28,36 @@ jvmtiEnv* jvmti;
 TLAB start;
 short first = 1;
 
-static void fillTLAB(TLAB* t) {
-  TLAB* addr;
-  asm("lea 0x58(%%r15), %0;":"=r"(addr)::);
-  memcpy(t, addr, sizeof(TLAB));
+/* In the name of being paranoid, this is a #define so to make sure nothing wierd about calling semantics/
+ * inlining might result in r15 being used before this point (however unlikely that is).
+ * gcc supports the much nicer register variable pinning, eg
+ * register void* thread_ptr asm("r15"),
+ * However this is sadly not portable - clang silently ignores (see b50a8f5).
+ * Clang also doesn't support -ffixed-<reg>, so we have to just hope for the best.
+ */
+#define COPY_TLAB(t) {\
+  TLAB* __addr;\
+  asm("lea 0x58(%%r15), %0;":"=r"(__addr)::);\
+  memcpy(t, __addr, sizeof(TLAB));\
 }
 
+
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass klass) {
-  fillTLAB(&start);
+  COPY_TLAB(&start);
 }
 
 JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass, jint printLevel) {
+  /* printValue will cause objects to be allocated, so must copy over the TLAB state before walking else we
+   * will infinite loop into crashing.
+   */
+  TLAB end;
+  COPY_TLAB(&end);
+
   //To avoid printing class init-related allocations from the static init, skip printing
   if (first) {
     first = 0;
     return;
   }
-  /* printValue will cause objects to be allocated, so must copy over the TLAB state before walking else we
-   * will infinite loop into crashing.
-   */
-  TLAB end;
-  fillTLAB(&end);
 
   if (start.start != end.start || start.end != end.end ||
     start.top > end.top) {
