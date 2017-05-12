@@ -4,12 +4,24 @@
 #include <stdio.h>
 #include <string.h>
 
-// Corresponds to start of the JVM's ThreadLocalAlloc class
+/* Corresponds to start of the JVM's ThreadLocalAlloc class. See
+ *  http://hg.openjdk.java.net/jdk8u/jdk8u/hotspot/file/020cb72be8b7/src/share/vm/memory/threadLocalAllocBuffer.hpp
+ *  for more
+ */
 typedef struct {
   void* start;
   void* top;
   void* pf_top;
   void* end;
+  size_t desired_size;
+  size_t refill_waste_limit;
+  size_t allocation_before_last_gc;
+  // Static fields are not stored in the class
+  unsigned number_of_refills;
+  unsigned fast_refill_waste;
+  unsigned slow_refill_waste;
+  unsigned gc_waste;
+  unsigned slow_allocations;
 } TLAB;
 
 jvmtiEnv* jvmti;
@@ -58,6 +70,13 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
     printf("I don't know how to JNI. printValues disabled\n");
     printLevel = 0;
   }
+
+  if (start.slow_allocations != end.slow_allocations) {
+    printf("Warning: missed non-TLAB allocation(s), likely large.\n");
+    printf("This will not be reflected in this output\n");
+    printf("start  %d    end %d\n", start.slow_allocations, end.slow_allocations);
+  }
+
   long allocated = (long)end.top - (long)start.top;
   printf("%ld\n", allocated);
 
