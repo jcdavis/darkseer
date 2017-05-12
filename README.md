@@ -26,7 +26,7 @@ Here are just a few:
 
 * Darkseer is fragile and only has basic sanity checks. Some GC events will cause it to crash the JVM (Somewhat fixable)
 * We can only look at allocations in a single TLAB slice. This is a fundamental limitation, but can be somewhat circumvented via increasing the TLAB size using `-XX:MinTLABSize=`
-* Some (very large) objects may not be allocated on the TLAB, which will be totally missed (unfixable)
+* Some large objects will not be allocated in the TLAB. Darkseer can detect that this has happened, but cannot identify those alocations (unfixable)
 * Darkseer can only record allocations for the thread that called it (unfixable)
 * Darkseer can only record allocations for a single thread at a time (fixable)
 * No stack traces of allocations can be provided (likely unfixable)
