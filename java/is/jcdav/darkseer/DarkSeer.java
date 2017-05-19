@@ -1,6 +1,7 @@
 package is.jcdav.darkseer;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class DarkSeer {
   public static native void start();
@@ -16,10 +17,20 @@ public class DarkSeer {
     end(1);
   }
 
+  private static final List<Class<?>> primitives = Arrays.asList(new Class<?>[]{
+    Boolean.class,
+    Byte.class,
+    Short.class,
+    Character.class,
+    Integer.class,
+    Float.class,
+    Long.class,
+    Double.class
+  });
   //Used to jailbreak out of JNI for printing logic.
   private static void printValue(Object object, int level) {
     Class clazz = object.getClass();
-    if ((clazz.isPrimitive() || clazz.isArray()) && level > 0) {
+    if ((primitives.contains(clazz) || clazz.isArray()) && level > 0) {
       if (object instanceof boolean[]) {
         System.out.println(Arrays.toString((boolean[]) object));
       } else if (object instanceof byte[]) {
