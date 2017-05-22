@@ -52,7 +52,7 @@ public class DarkSeer {
       } else {
         System.out.println(object.toString());
       }
-    } else if (level == 2) {
+    } else if (level >= 2) {
       System.out.println(object.toString());
     }
   }
