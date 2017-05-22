@@ -90,7 +90,7 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
   printf("%ld\n", allocated);
 
   char* current = (char*)start.top;
-  while (end.top > current) {
+  while ((char*)end.top > current) {
     jclass objKlass = (*env)->GetObjectClass(env, (jobject)&current);
     jlong size = -1;
     (*jvmti)->GetObjectSize(jvmti, (jobject)&current, &size);
@@ -105,8 +105,8 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
       (*env)->CallStaticVoidMethod(env, klass, mid, (jobject)&current, printLevel);
     }
 
-    (*jvmti)->Deallocate(jvmti, signature);
-    (*jvmti)->Deallocate(jvmti, generic_signature);
+    (*jvmti)->Deallocate(jvmti, (unsigned char*)signature);
+    (*jvmti)->Deallocate(jvmti, (unsigned char*)generic_signature);
     assert(size > 0 && size % 8 == 0); //FIXME: this assert is not portable
     current += size;
   }
