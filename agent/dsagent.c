@@ -23,35 +23,26 @@ typedef struct {
   unsigned gc_waste;
   unsigned slow_allocations;
 } TLAB;
+typedef void JVMThread;
 
 jvmtiEnv* jvmti;
 TLAB start;
 short first = 1;
 
-/* In the name of being paranoid, this is a #define so to make sure nothing wierd about calling semantics/
- * inlining might result in r15 being used before this point (however unlikely that is).
- * gcc supports the much nicer register variable pinning, eg
- * register void* thread_ptr asm("r15"),
- * However this is sadly not portable - clang silently ignores (see b50a8f5).
- * Clang also doesn't support -ffixed-<reg>, so we have to just hope for the best.
- */
-#define COPY_TLAB(t) {\
-  TLAB* __addr;\
-  asm("lea 0x58(%%r15), %0;":"=r"(__addr)::);\
-  memcpy(t, __addr, sizeof(TLAB));\
+static void copy_tlab(JVMThread* thread_pointer, TLAB* tlab) {
+  memcpy(tlab, (uint8_t*)thread_pointer + 0x58, sizeof(TLAB)); 
 }
 
-
-JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass klass) {
-  COPY_TLAB(&start);
+void real_start(JNIEnv *env, jclass klass, JVMThread* thread_pointer) {
+  copy_tlab(thread_pointer, &start);
 }
 
-JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass, jint printLevel) {
+void real_end(JNIEnv *env, jclass klass, jint printLevel, JVMThread* thread_pointer) {
   /* printValue will cause objects to be allocated, so must copy over the TLAB state before walking else we
    * will infinite loop into crashing.
    */
   TLAB end;
-  COPY_TLAB(&end);
+  copy_tlab(thread_pointer, &end);
 
   //To avoid printing class init-related allocations from the static init, skip printing
   if (first) {
