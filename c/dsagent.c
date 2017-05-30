@@ -87,7 +87,7 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
   }
 
   long allocated = (long)end.top - (long)start.top;
-  printf("%ld\n", allocated);
+  printf("%ld bytes allocated\n--------------------\n", allocated);
 
   char* current = (char*)start.top;
   while ((char*)end.top > current) {
