@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <jvmti.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -26,7 +27,7 @@ typedef struct {
 
 jvmtiEnv* jvmti;
 TLAB start;
-short first = 1;
+bool first = true;
 
 /* In the name of being paranoid, this is a #define so to make sure nothing wierd about calling semantics/
  * inlining might result in r15 being used before this point (however unlikely that is).
@@ -55,7 +56,7 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
 
   //To avoid printing class init-related allocations from the static init, skip printing
   if (first) {
-    first = 0;
+    first = false;
     return;
   }
 
