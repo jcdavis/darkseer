@@ -90,16 +90,14 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
   long allocated = (long)end.top - (long)start.top;
   printf("%ld bytes allocated\n--------------------\n", allocated);
 
-  char* current = (char*)start.top;
-  while ((char*)end.top > current) {
+  uint8_t* current = (uint8_t*)start.top;
+  while ((uint8_t*)end.top > current) {
     jclass objKlass = (*env)->GetObjectClass(env, (jobject)&current);
     jlong size = -1;
     (*jvmti)->GetObjectSize(jvmti, (jobject)&current, &size);
 
     char* signature;
-    char* generic_signature;
-    (*jvmti)->GetClassSignature(jvmti, objKlass, &signature,
-      &generic_signature);
+    (*jvmti)->GetClassSignature(jvmti, objKlass, &signature, NULL);
     printf("%s: %ld\n", signature, size);
 
     if (printLevel > 0) {
@@ -107,7 +105,6 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
     }
 
     (*jvmti)->Deallocate(jvmti, (unsigned char*)signature);
-    (*jvmti)->Deallocate(jvmti, (unsigned char*)generic_signature);
     assert(size > 0 && size % 8 == 0); //FIXME: this assert is not portable
     current += size;
   }
