@@ -26,7 +26,10 @@ demo: setup jar agent
 	$(JAVA_HOME)/bin/javac -cp target/ -d target test/*
 	$(JAVA_HOME)/bin/java -cp target/ -agentpath:target/ldsagent.so Demo
 
-#Uses whatever your path scala is. Override with make SCALA=/path/to/scala scalarepls
+#Uses whatever your path scala is. Override with make SCALA=/path/to/scala scalarepl
 SCALA=$(shell which scala)
 scalarepl: jar agent
-	$(SCALA) -cp target/ -J-agentpath:target/ldsagent.so		
+	$(SCALA) -cp target/ -J-agentpath:target/ldsagent.so
+
+jshell: jar agent
+	$(JAVA_HOME)/bin/jshell -class-path target/ -R-agentpath:target/ldsagent.so
