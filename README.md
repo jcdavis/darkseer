@@ -12,7 +12,7 @@ Darkseer works by taking advantage of specific register allocation and memory la
 
 The only requirements for building Darkseer are having gcc and `JAVA_HOME` configured to point to an installed jdk. To build, run `make demo`, which will build both the agent as well as the interface jar, and then run a simple demo.
 
-If you are modifying the signature of the native methods, running `make stubs` will create a generated wrapper file `target/stubs.c`
+If you are modifying the signature of the native methods, running `make stubs` will create a generated header file in `target` with the correct function definitions
 
 # Running
 

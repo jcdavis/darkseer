@@ -20,7 +20,7 @@ agent: setup
 	$(CC) $(CFLAGS) -o target/ldsagent.so -I $(JAVA_HOME)/include/ -I $(JAVA_HOME)/include/$(OS)/ c/*.c
 
 stubs: setup jar
-	$(JAVA_HOME)/bin/javah -o target/stubs.c -stubs -cp target/ is.jcdav.darkseer.DarkSeer
+	$(JAVA_HOME)/bin/javac -h target/ -d target/ java/is/jcdav/darkseer/*
 
 demo: setup jar agent
 	$(JAVA_HOME)/bin/javac -cp target/ -d target test/*
