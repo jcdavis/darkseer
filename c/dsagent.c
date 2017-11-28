@@ -27,7 +27,6 @@ typedef struct {
 
 jvmtiEnv* jvmti;
 TLAB start;
-bool first = true;
 
 /* In the name of being paranoid, this is a #define so to make sure nothing wierd about calling semantics/
  * inlining might result in r15 being used before this point (however unlikely that is).
@@ -47,18 +46,12 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_start(JNIEnv *env, jclass
   COPY_TLAB(&start);
 }
 
-JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass, jint printLevel) {
+JNIEXPORT jint JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass klass, jint printLevel) {
   /* printValue will cause objects to be allocated, so must copy over the TLAB state before walking else we
    * will infinite loop into crashing.
    */
   TLAB end;
   COPY_TLAB(&end);
-
-  //To avoid printing class init-related allocations from the static init, skip printing
-  if (first) {
-    first = false;
-    return;
-  }
 
   if (start.start != end.start || start.end != end.end ||
     start.top > end.top) {
@@ -73,41 +66,47 @@ JNIEXPORT void JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
     printf("end    %016" PRIxPTR " %016" PRIxPTR "\n",
       (uintptr_t)start.end, (uintptr_t)end.end);
     printf("If this happens regularly you may need to increase -XX:MinTLABSize\n");
-    return;
+    return -1;
   }
   jmethodID mid = (*env)->GetStaticMethodID(env, klass, "printValue", "(Ljava/lang/Object;I)V");
-  if (!mid) {
+  if (!mid && printLevel > 1) {
     printf("I don't know how to JNI. printValues disabled\n");
-    printLevel = 0;
+    printLevel = 1;
   }
 
   if (start.slow_allocations != end.slow_allocations) {
+    // Failure to count a slowplay allocation is only an error when we can't print
+    if (printLevel == 0)
+      return -1;
     printf("Warning: missed non-TLAB allocation(s), likely large.\n");
     printf("This will not be reflected in this output\n");
     printf("start  %d    end %d\n", start.slow_allocations, end.slow_allocations);
   }
 
   long allocated = (long)end.top - (long)start.top;
-  printf("%ld bytes allocated\n--------------------\n", allocated);
+  if (printLevel > 0) {
+    printf("%ld bytes allocated\n--------------------\n", allocated);
 
-  uint8_t* current = (uint8_t*)start.top;
-  while ((uint8_t*)end.top > current) {
-    jclass objKlass = (*env)->GetObjectClass(env, (jobject)&current);
-    jlong size = -1;
-    (*jvmti)->GetObjectSize(jvmti, (jobject)&current, &size);
+    uint8_t* current = (uint8_t*)start.top;
+    while ((uint8_t*)end.top > current) {
+      jclass objKlass = (*env)->GetObjectClass(env, (jobject)&current);
+      jlong size = -1;
+      (*jvmti)->GetObjectSize(jvmti, (jobject)&current, &size);
 
-    char* signature;
-    (*jvmti)->GetClassSignature(jvmti, objKlass, &signature, NULL);
-    printf("%s: %ld\n", signature, size);
+      char* signature;
+      (*jvmti)->GetClassSignature(jvmti, objKlass, &signature, NULL);
+      printf("%s: %ld\n", signature, size);
 
-    if (printLevel > 0) {
-      (*env)->CallStaticVoidMethod(env, klass, mid, (jobject)&current, printLevel);
+      if (printLevel > 1) {
+        (*env)->CallStaticVoidMethod(env, klass, mid, (jobject)&current, printLevel);
+      }
+
+      (*jvmti)->Deallocate(jvmti, (unsigned char*)signature);
+      assert(size > 0 && size % 8 == 0); //FIXME: this assert is not portable
+      current += size;
     }
-
-    (*jvmti)->Deallocate(jvmti, (unsigned char*)signature);
-    assert(size > 0 && size % 8 == 0); //FIXME: this assert is not portable
-    current += size;
   }
+  return (jint)allocated;
 }
 
 JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *vm, char *options, void *reserved) {
