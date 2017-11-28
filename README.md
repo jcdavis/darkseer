@@ -1,6 +1,6 @@
 # Darkseer
 
-Darkseer is an experimental JVM profiler for analyzing actual memory allocations in a thread. It may be of interest to people looking to analyze the real-world memory usage of c2 compiled methods, free from the interference that comes from bytecode manipulating profilers. For more background on how it works, read [my blog post](http://jcdav.is/2016/07/11/JVM-allocation-secrets/).
+Darkseer is an experimental JVM profiler for analyzing actual memory allocations in a thread. It may be of interest to people looking to analyze the real-world memory usage of c2 compiled methods, free from the interference that comes from bytecode manipulating profilers and without having to use commercial features of the Oracle JDK (eg JFR). For more background on how it works, read [my blog post](http://jcdav.is/2016/07/11/JVM-allocation-secrets/).
 
 **This should be considered to be a proof of concept for the curious only.**
 
@@ -16,7 +16,7 @@ If you are modifying the signature of the native methods, running `make stubs` w
 
 # Running
 
-To run, pass `-agentpath:path/to/ldsagent.so` to java and make sure `darkseer.jar` in on your classpath (see the demo in the Makefile). You start recording via `DarkSeer.start()` and stop with `DarkSeer.end()`, which will print out the total number of bytes allocated as well and the class and size of every allocated object, with controllable object printing. 1 (the default) prints only primitive wrappers and arrays, 2 prints all objects, 0 disables all object printing.
+To run, pass `-agentpath:path/to/ldsagent.so` to java and make sure `darkseer.jar` in on your classpath (see the demo in the Makefile). You start recording via `DarkSeer.start()` and stop with `DarkSeer.end()`, which will print out the total number of bytes allocated as well and the class and size of every allocated object, with controllable object content printing. (0 disables all output - 3 prints all objects) 
 
 If you have scala installed, `make scalarepl` will start a scala repl with correct agent/classpath params.
 If you have java 9+, `make jshell` will start a java repl with the correct agent/classpath params.

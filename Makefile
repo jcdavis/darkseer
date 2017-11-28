@@ -15,7 +15,7 @@ jar: setup
 	$(JAVA_HOME)/bin/jar cvf target/darkseer.jar target/is/jcdav/darkseer/*.class
 
 OS=$(shell uname -s | tr '[:upper:]' '[:lower:]')
-CFLAGS= -lc -shared -fPIC -Wall -Wextra -Werror -Wno-unused-parameter
+CFLAGS= -std=gnu11 -lc -shared -fPIC -Wall -Wextra -Werror -Wno-unused-parameter
 agent: setup
 	$(CC) $(CFLAGS) -o target/ldsagent.so -I $(JAVA_HOME)/include/ -I $(JAVA_HOME)/include/$(OS)/ c/*.c
 
