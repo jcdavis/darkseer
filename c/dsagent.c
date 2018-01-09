@@ -18,6 +18,8 @@ typedef struct {
   size_t refill_waste_limit;
   size_t allocation_before_last_gc;
   // Static fields are not stored in the class
+  // static size_t _max_size;
+  // static unsigned _target_refills;
   unsigned number_of_refills;
   unsigned fast_refill_waste;
   unsigned slow_refill_waste;
@@ -28,7 +30,7 @@ typedef struct {
 jvmtiEnv* jvmti;
 TLAB start;
 
-/* In the name of being paranoid, this is a #define so to make sure nothing wierd about calling semantics/
+/* In the name of being paranoid, this is a macro so to make sure nothing wierd about calling semantics/
  * inlining might result in r15 being used before this point (however unlikely that is).
  * gcc supports the much nicer register variable pinning, eg
  * register void* thread_ptr asm("r15"),
@@ -75,7 +77,7 @@ JNIEXPORT jint JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
   }
 
   if (start.slow_allocations != end.slow_allocations) {
-    // Failure to count a slowplay allocation is only an error when we can't print
+    // Failure to count a slowpath allocation is only an error when we can't print
     if (printLevel == 0)
       return -1;
     printf("Warning: missed non-TLAB allocation(s), likely large.\n");
@@ -89,6 +91,10 @@ JNIEXPORT jint JNICALL Java_is_jcdav_darkseer_DarkSeer_end(JNIEnv *env, jclass k
 
     uint8_t* current = (uint8_t*)start.top;
     while ((uint8_t*)end.top > current) {
+      /* A jobject in JNI/JVMTI is a pointer to the actual address of the referenced object,
+       * so the GC can keep track of referenced objects and freely move them.
+       * Since we have a pointer to the actual object (hehe), we pass its address on the stack.
+       */
       jclass objKlass = (*env)->GetObjectClass(env, (jobject)&current);
       jlong size = -1;
       (*jvmti)->GetObjectSize(jvmti, (jobject)&current, &size);
